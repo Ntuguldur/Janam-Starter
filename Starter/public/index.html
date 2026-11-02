@@ -66,7 +66,7 @@ footer.footer{background:#101010;color:#f5f3ef;padding:30px 20px 14px;font-size:
 <body>
 <header>
   <div class="bar">
-    <a class="logo" href="/" aria-label="Жанам стартер home">Жанам стартер</a>
+    <a class="logo" href="#" aria-label="Жанам стартер home">Жанам стартер</a>
     <form class="search" role="search" id="sf"><input id="q" type="search" placeholder="Бүтээгдэхүүн хайх..." aria-label="Search products"><button aria-label="Search">Search</button></form>
     <div class="icons">
     </div>
@@ -104,49 +104,46 @@ const ls={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==nul
 const ICON={dress:'<path d="M35 5h30l-6 25 20 65H21l20-65z"/>',top:'<path d="M30 10l-22 18 10 14 12-8v52h40V34l12 8 10-14-22-18c-4 8-10 12-20 12S34 18 30 10z"/>',pants:'<path d="M28 5h44l8 90H58L50 40l-8 55H20z"/>',bag:'<path d="M18 35h64l6 60H12zM34 35c0-18 32-18 32 0" stroke="currentColor" stroke-width="6" fill-rule="evenodd"/>',shoe:'<path d="M5 60l30-6 20-26 10 6 8 20 22 10v16H5z"/>',acc:'<circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="12"/>'};
 const TN={dress:'\u042f\u043f\u043e\u043d',top:'\u0425\u044f\u0442\u0430\u0434',pants:'\u0421\u043e\u043b\u043e\u043d\u0433\u043e\u0441',bag:'\u0410\u043c\u0435\u0440\u0438\u043a',shoe:'\u0415\u0432\u0440\u043e\u043f'};
 const catName=slug=>TN[slug]||categories.find(c=>c.slug===slug)?.name||slug;
-const catPath=slug=>`/category/${encodeURIComponent(slug)}`;
-const routePath=key=>!key?'/':key==='new'||key==='all'?`/${key}`:key.startsWith('p-')?`/product/${key.slice(2)}`:catPath(key);
-const routeKey=()=>{const a=location.pathname.split('/').filter(Boolean).map(decodeURIComponent);if(a[0]==='product')return `p-${a[1]||''}`;if(a[0]==='category')return a[1]||'';return a[0]||''};
-function legacyRouteKey(){let h='';try{h=decodeURIComponent(location.hash.slice(1))}catch(e){return ''}if(h.startsWith('p-')||h==='new'||h==='all')return h;if(h.startsWith('cat-'))return h.slice(4);if(h.startsWith('t-'))return h.slice(2);return categories.find(c=>catName(c.slug)===h)?.slug||Object.keys(TN).find(slug=>catName(slug)===h)||''}
+const catHash=slug=>encodeURIComponent(catName(slug));
+const catSlug=hash=>categories.find(c=>catHash(c.slug)===hash)?.slug||Object.keys(TN).find(slug=>catHash(slug)===hash);
 let P=[],categories=[],q='',shown=20,loadErr=false;
 const byId=id=>P.find(p=>p.id===id);
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2400)}
 function hl(s){s=esc(s);if(!q)return s;try{return s.replace(new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig'),m=>'<mark>'+m+'</mark>')}catch(e){return s}}
 function media(p){const h=(p.id*47)%360;return `<div class="ph" style="background:hsl(${h},30%,82%);color:hsl(${h},40%,30%)">${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy">`:`<svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true">${ICON[p.type]||ICON.acc}</svg>`}`}
-function card(p){const out=p.stock<1;return `<article class="card" data-open="${p.id}" style="cursor:pointer">${media(p)}${out?'<span class="so">Sold out</span>':''}</div><div class="info"><h3 class="name"><a href="${routePath('p-'+p.id)}" style="text-decoration:none">${hl(p.name)}</a></h3></div></article>`}
+function card(p){const out=p.stock<1;return `<article class="card" data-open="${p.id}" style="cursor:pointer">${media(p)}${out?'<span class="so">Sold out</span>':''}</div><div class="info"><h3 class="name"><a href="#p-${p.id}" style="text-decoration:none">${hl(p.name)}</a></h3></div></article>`}
 const grid=l=>l.length?`<div class="grid">${l.slice(0,shown).map(card).join('')}</div>`+(l.length>shown?'<p style="text-align:center;margin-top:16px"><button class="btn g" data-act="more">Load more</button></p>':''):'<div class="box">Бүтээгдэхүүн олдсонгүй. Өөрөөр хайж үзэх эсвэл өөр ангилал сонгоно уу.</div>';
-const sec=(t,to,l)=>l.length?`<section><div class="sh"><h2>${t}</h2><a href="${routePath(to)}">View all</a></div><div class="grid">${l.slice(0,5).map(card).join('')}</div></section>`:'';
+const sec=(t,to,l)=>l.length?`<section><div class="sh"><h2>${t}</h2><a href="#${to}">View all</a></div><div class="grid">${l.slice(0,5).map(card).join('')}</div></section>`:'';
 let detail={},gi=0,curP=0;
 function zoomImg(u){const o=document.createElement('div');o.className='ov';o.setAttribute('role','dialog');o.setAttribute('aria-label','Photo');o.tabIndex=-1;o.innerHTML=`<img src="${esc(u)}" alt="" style="max-width:96vw;max-height:94vh;border-radius:4px;cursor:zoom-out">`;o.onclick=()=>o.remove();o.onkeydown=e=>{if(e.key==='Escape')o.remove()};document.body.appendChild(o);o.focus()}
-function detailView(id){const p=byId(id);if(!p)return `<div class="box">This product is not available. <a href="/">Back to shop</a></div>`;
+function detailView(id){const p=byId(id);if(!p)return `<div class="box">This product is not available. <a href="#">Back to shop</a></div>`;
 const d=detail[id];if(!d){api('GET','/api/products/'+id).then(x=>{detail[id]=x;render()}).catch(()=>{detail[id]={...p,images:p.img?[p.img]:[],description:''};render()});return '<div class="box">Loading…</div>'}
 if(curP!==id){curP=id;gi=0}
 const imgs=d.images||[],cur=imgs[gi]||null,out=p.stock<1,rel=P.filter(x=>x.type===p.type&&x.id!==id).slice(0,5);
 const stock=out?'<b style="color:var(--sale)">Sold out</b>':p.stock<=5?`<b style="color:var(--sale)">Only ${p.stock} left</b>`:'In stock';
-return `<div class="crumb"><a href="/">Home</a> / <a href="${catPath(p.type)}">${esc(catName(p.type))}</a> / ${esc(p.name)}</div><div class="pd"><div><div class="gmain">${cur?`<button data-act="zoom" aria-label="Zoom photo"><img src="${esc(cur)}" alt="${esc(p.name)}"></button>`:`${media(p)}</div>`}</div>`+
+return `<div class="crumb"><a href="#">Home</a> / <a href="#${catHash(p.type)}">${esc(catName(p.type))}</a> / ${esc(p.name)}</div><div class="pd"><div><div class="gmain">${cur?`<button data-act="zoom" aria-label="Zoom photo"><img src="${esc(cur)}" alt="${esc(p.name)}"></button>`:`${media(p)}</div>`}</div>`+
 (imgs.length>1?`<div class="thumbs">${imgs.map((u,i)=>`<button data-act="gal" data-i="${i}" class="${i===gi?'on':''}" aria-label="Photo ${i+1} of ${imgs.length}"><img src="${esc(u)}" alt=""></button>`).join('')}</div>`:'')+
 `</div><div class="pinfo"><h1>${esc(p.name)}</h1><p>${stock}</p>`+
 
 
 `<h3>Тайлбар</h3><div class="desc">${d.description?esc(d.description):'No description yet.'}</div></div></div>`+
 (rel.length?`<section><div class="sh"><h2>Бусад бараа</h2></div><div class="grid">${rel.map(card).join('')}</div></section>`:'')}
-function allCategoryView(){return `<h1 class="h">\u0411\u04af\u0433\u0434</h1>`+categories.map(c=>{const items=P.filter(p=>p.type===c.slug);return `<section id="${c.slug}"><div class="sh"><h2>${esc(catName(c.slug))}</h2><a href="${catPath(c.slug)}">View all</a></div>${grid(items)}</section>`}).join('')}
-function view(){const h=routeKey();if(loadErr)return `<div class="box"><p>We could not load the products.</p><button class="btn" data-act="retry">Try again</button></div>`;
+function allCategoryView(){return `<h1 class="h">\u0411\u04af\u0433\u0434</h1>`+categories.map(c=>{const items=P.filter(p=>p.type===c.slug);return `<section id="${catName(c.slug)}"><div class="sh"><h2>${esc(catName(c.slug))}</h2><a href="#${catHash(c.slug)}">View all</a></div>${grid(items)}</section>`}).join('')}
+function view(){const h=location.hash.slice(1);if(loadErr)return `<div class="box"><p>We could not load the products.</p><button class="btn" data-act="retry">Try again</button></div>`;
 if(h.startsWith('p-'))return detailView(+h.slice(2));
 if(q)return `<h1 class="h">Results for “${esc(q)}”</h1>`+grid(P.filter(p=>(p.name+' '+catName(p.type)).toLowerCase().includes(q.toLowerCase())));
 if(h==='all'||h==='t-dress')return allCategoryView();
 if(h==='new')return `<h1 class="h">Шинээр ирсэн</h1>`+grid(P.slice().sort((a,b)=>b.id-a.id));
-const namedCategory=categories.find(c=>c.slug===h)?.slug||Object.keys(TN).find(slug=>slug===h);if(namedCategory)return `<h1 class="h">${esc(catName(namedCategory))}</h1>`+grid(P.filter(p=>p.type===namedCategory));
+const namedCategory=catSlug(h);if(namedCategory)return `<h1 class="h">${esc(catName(namedCategory))}</h1>`+grid(P.filter(p=>p.type===namedCategory));
 if(h.startsWith('cat-')||h.startsWith('t-')){const t=h.startsWith('cat-')?h.slice(4):h.slice(2);return `<h1 class="h">${esc(TN[t]||'Products')}</h1>`+grid(P.filter(p=>p.type===t))}
 const nw=P.slice().sort((a,b)=>b.id-a.id);
-return `<div class="hero"><h1>Бүх төрлийн автомашин болон хүнд машин механизм</h1><p>ЖАНАМ-СТАРТЕР худалдаа/ засвар үйлчилгээ</p><a class="btn w" href="/new">Шинээр ирсэн</a></div>`+sec('Шинээр ирсэн','new',nw)+`<section><div class="sh"><h2>All products</h2></div>${grid(P)}</section>`}
-function render(){const h=routeKey();$('#app').innerHTML=view();
-$('#nav').innerHTML=[['new','\u0428\u0438\u043d\u044d\u044d\u0440 \u0438\u0440\u0441\u044d\u043d'],['all','\u0411\u04af\u0433\u0434'],...categories.map(c=>[c.slug,catName(c.slug)])].map(([k,v])=>`<li><a href="${routePath(k)}" class="${h===k?'on ':''}">${esc(v)}</a></li>`).join('');
+return `<div class="hero"><h1>Бүх төрлийн автомашин болон хүнд машин механизм</h1><p>ЖАНАМ-СТАРТЕР худалдаа/ засвар үйлчилгээ</p><a class="btn w" href="#new">Шинээр ирсэн</a></div>`+sec('Шинээр ирсэн','new',nw)+`<section><div class="sh"><h2>All products</h2></div>${grid(P)}</section>`}
+function render(){const h=location.hash.slice(1);$('#app').innerHTML=view();
+$('#nav').innerHTML=[['new','\u0428\u0438\u043d\u044d\u044d\u0440 \u0438\u0440\u0441\u044d\u043d'],['all','\u0411\u04af\u0433\u0434'],...categories.map(c=>[catHash(c.slug),catName(c.slug)])].map(([k,v])=>`<li><a href="#${k}" class="${h===k?'on ':''}">${esc(v)}</a></li>`).join('');
 }
-function navigate(path){history.pushState({},'',path);q='';$('#q').value='';shown=20;render();scrollTo(0,0)}
-document.addEventListener('click',async e=>{const a=e.target.closest('a[href]');if(a&&a.origin===location.origin&&!a.hasAttribute('download')){e.preventDefault();navigate(a.pathname);return}const oc=e.target.closest('.card[data-open]');if(oc&&!e.target.closest('button,a')){navigate(routePath('p-'+oc.dataset.open));return}const b=e.target.closest('[data-act]');if(!b)return;const d=b.dataset,id=+d.id;
+document.addEventListener('click',async e=>{const oc=e.target.closest('.card[data-open]');if(oc&&!e.target.closest('button,a')){location.hash='p-'+oc.dataset.open;return}const b=e.target.closest('[data-act]');if(!b)return;const d=b.dataset,id=+d.id;
 switch(d.act){
-case 'go':navigate(routePath(d.to));break;
+case 'go':location.hash=d.to;break;
 
 
 
@@ -158,10 +155,10 @@ case 'zoom':{const dd=detail[curP],u=dd&&dd.images[gi];if(u)zoomImg(u)}break;
 
 
 }});
-$('#sf').onsubmit=e=>{e.preventDefault();q=$('#q').value.trim();shown=20;if(location.pathname!=='/')history.pushState({},'','/');render()};
-addEventListener('popstate',()=>{q='';$('#q').value='';shown=20;render();scrollTo(0,0)});
+$('#sf').onsubmit=e=>{e.preventDefault();q=$('#q').value.trim();shown=20;if(location.hash)location.hash='';else render()};
+addEventListener('hashchange',()=>{if(location.hash.slice(1)!==''){q='';$('#q').value=''}shown=20;render();scrollTo(0,0)});
 async function loadProducts(){try{[P,categories]=await Promise.all([api('GET','/api/products'),api('GET','/api/categories')]);loadErr=false}catch(e){loadErr=true}}
-(async()=>{await loadProducts();if(location.hash){const key=legacyRouteKey();history.replaceState({},'',routePath(key))}render()})();
+(async()=>{await loadProducts();render()})();
 </script>
 </body>
 </html>

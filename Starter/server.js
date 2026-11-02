@@ -148,9 +148,7 @@ const server = http.createServer(async (req, res) => {
     }
     // The dashboard is only served at the configured hard-to-guess path.
     if (p === '/admin' || p === '/admin.html') { res.writeHead(404); return res.end('Not found'); }
-    const root = path.join(here, 'public'); let f = path.join(root, p === '/' ? 'index.html' : p === ADMIN_PATH ? 'admin.html' : p);
-    // Serve the storefront for clean client-side routes such as /new and /product/123.
-    if (!fs.existsSync(f) && req.method === 'GET' && !path.extname(p)) f = path.join(root, 'index.html');
+    const root = path.join(here, 'public'), f = path.join(root, p === '/' ? 'index.html' : p === ADMIN_PATH ? 'admin.html' : p);
     if (!f.startsWith(root + path.sep) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end('Not found'); }
     res.writeHead(200, { 'Content-Type': MIME[path.extname(f)] || 'application/octet-stream', 'Cache-Control': f.endsWith('.html') ? 'no-cache' : 'public, max-age=3600' }); fs.createReadStream(f).pipe(res);
   } catch (e) { if (e instanceof HttpError) return send(res, e.code, { error: e.message }); console.error(e); send(res, 500, { error: 'Something went wrong. Please try again.' }); }
