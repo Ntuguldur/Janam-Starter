@@ -127,7 +127,7 @@ return `<div class="crumb"><a href="#">Home</a> / <a href="#${catHash(p.type)}">
 
 
 `<h3>Тайлбар</h3><div class="desc">${d.description?esc(d.description):'No description yet.'}</div></div></div>`+
-(rel.length?`<section><div class="sh"><h2>You may also like</h2></div><div class="grid">${rel.map(card).join('')}</div></section>`:'')}
+(rel.length?`<section><div class="sh"><h2>Бусад бараа</h2></div><div class="grid">${rel.map(card).join('')}</div></section>`:'')}
 function allCategoryView(){return `<h1 class="h">\u0411\u04af\u0433\u0434</h1>`+categories.map(c=>{const items=P.filter(p=>p.type===c.slug);return `<section id="${catName(c.slug)}"><div class="sh"><h2>${esc(catName(c.slug))}</h2><a href="#${catHash(c.slug)}">View all</a></div>${grid(items)}</section>`}).join('')}
 function view(){const h=location.hash.slice(1);if(loadErr)return `<div class="box"><p>We could not load the products.</p><button class="btn" data-act="retry">Try again</button></div>`;
 if(h.startsWith('p-'))return detailView(+h.slice(2));
