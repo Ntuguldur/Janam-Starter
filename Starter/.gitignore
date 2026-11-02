@@ -1,2 +1,5 @@
 data/
 node_modules/
+oyu.db
+oyu.db-wal
+oyu.db-shm
