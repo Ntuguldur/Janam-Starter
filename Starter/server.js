@@ -10,7 +10,9 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const PORT = +process.env.PORT || 3000;
 const DATA = process.env.DATA_DIR || path.join(here, 'data');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+const ADMIN_PATH = process.env.ADMIN_PATH || '/manage-7f3c9a2e8b6d4f1a0c5e9b7d3a6f2c8e';
 if (ADMIN_PASSWORD.length < 8) { console.error('Set ADMIN_PASSWORD to at least 8 characters.'); process.exit(1); }
+if (!/^\/[a-zA-Z0-9_-]{16,100}$/.test(ADMIN_PATH)) { console.error('ADMIN_PATH must be a slash followed by 16–100 letters, numbers, underscores, or hyphens.'); process.exit(1); }
 fs.mkdirSync(DATA, { recursive: true });
 const db = new DatabaseSync(path.join(DATA, 'oyu.db'));
 db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;
@@ -144,7 +146,9 @@ const server = http.createServer(async (req, res) => {
       if (!mt) { res.writeHead(404); return res.end(); }
       res.writeHead(200, { 'Content-Type': mt[1], 'Cache-Control': 'public, max-age=31536000, immutable' }); return res.end(Buffer.from(mt[2], 'base64'));
     }
-    const root = path.join(here, 'public'), f = path.join(root, p === '/' ? 'index.html' : p === '/admin' ? 'admin.html' : p);
+    // The dashboard is only served at the configured hard-to-guess path.
+    if (p === '/admin' || p === '/admin.html') { res.writeHead(404); return res.end('Not found'); }
+    const root = path.join(here, 'public'), f = path.join(root, p === '/' ? 'index.html' : p === ADMIN_PATH ? 'admin.html' : p);
     if (!f.startsWith(root + path.sep) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end('Not found'); }
     res.writeHead(200, { 'Content-Type': MIME[path.extname(f)] || 'application/octet-stream', 'Cache-Control': f.endsWith('.html') ? 'no-cache' : 'public, max-age=3600' }); fs.createReadStream(f).pipe(res);
   } catch (e) { if (e instanceof HttpError) return send(res, e.code, { error: e.message }); console.error(e); send(res, 500, { error: 'Something went wrong. Please try again.' }); }
