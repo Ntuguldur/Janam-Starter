@@ -127,7 +127,7 @@ return `<div class="crumb"><a href="#">Home</a> / <a href="#${catHash(p.type)}">
 
 `<h3>Description</h3><div class="desc">${d.description?esc(d.description):'No description yet.'}</div></div></div>`+
 (rel.length?`<section><div class="sh"><h2>You may also like</h2></div><div class="grid">${rel.map(card).join('')}</div></section>`:'')}
-function allCategoryView(){return `<h1 class="h">\u0411\u04af\u0445 \u0430\u043d\u0433\u0438\u043b\u0430\u043b</h1>`+categories.map(c=>{const items=P.filter(p=>p.type===c.slug);return `<section id="${catName(c.slug)}"><div class="sh"><h2>${esc(catName(c.slug))}</h2><a href="#${catHash(c.slug)}">View all</a></div>${grid(items)}</section>`}).join('')}
+function allCategoryView(){return `<h1 class="h">\u0411\u04af\u0433\u0434</h1>`+categories.map(c=>{const items=P.filter(p=>p.type===c.slug);return `<section id="${catName(c.slug)}"><div class="sh"><h2>${esc(catName(c.slug))}</h2><a href="#${catHash(c.slug)}">View all</a></div>${grid(items)}</section>`}).join('')}
 function view(){const h=location.hash.slice(1);if(loadErr)return `<div class="box"><p>We could not load the products.</p><button class="btn" data-act="retry">Try again</button></div>`;
 if(h.startsWith('p-'))return detailView(+h.slice(2));
 if(q)return `<h1 class="h">Results for “${esc(q)}”</h1>`+grid(P.filter(p=>(p.name+' '+catName(p.type)).toLowerCase().includes(q.toLowerCase())));
@@ -138,7 +138,7 @@ if(h.startsWith('cat-')||h.startsWith('t-')){const t=h.startsWith('cat-')?h.slic
 const nw=P.slice().sort((a,b)=>b.id-a.id);
 return `<div class="hero"><h1>Бүх төрлийн автомашин болон хүнд машин механизм</h1><p>ЖАНАМ-СТАРТЕР худалдаа/ засвар үйлчилгээ</p><a class="btn w" href="#new">Шинээр ирсэн</a></div>`+sec('Шинээр ирсэн','new',nw)+`<section><div class="sh"><h2>All products</h2></div>${grid(P)}</section>`}
 function render(){const h=location.hash.slice(1);$('#app').innerHTML=view();
-$('#nav').innerHTML=[['new','\u0428\u0438\u043d\u044d\u044d\u0440 \u0438\u0440\u0441\u044d\u043d'],['all','\u0411\u04af\u0445 \u0430\u043d\u0433\u0438\u043b\u0430\u043b'],...categories.map(c=>[catHash(c.slug),catName(c.slug)])].map(([k,v])=>`<li><a href="#${k}" class="${h===k?'on ':''}">${esc(v)}</a></li>`).join('');
+$('#nav').innerHTML=[['new','\u0428\u0438\u043d\u044d\u044d\u0440 \u0438\u0440\u0441\u044d\u043d'],['all','\u0411\u04af\u0433\u0434'],...categories.map(c=>[catHash(c.slug),catName(c.slug)])].map(([k,v])=>`<li><a href="#${k}" class="${h===k?'on ':''}">${esc(v)}</a></li>`).join('');
 }
 document.addEventListener('click',async e=>{const oc=e.target.closest('.card[data-open]');if(oc&&!e.target.closest('button,a')){location.hash='p-'+oc.dataset.open;return}const b=e.target.closest('[data-act]');if(!b)return;const d=b.dataset,id=+d.id;
 switch(d.act){
