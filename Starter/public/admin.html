@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="robots" content="noindex">
+<title>\u0416\u0430\u043d\u0430\u043c \u0441\u0442\u0430\u0440\u0442\u0435\u0440 Admin</title>
+<style>
+:root{--bg:#f3f3f2;--surface:#fff;--ink:#111;--muted:#6b6b6b;--line:#e2e2e0;--sale:#e8431a}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--surface:#1f1f1f;--ink:#f2f2f2;--muted:#a0a0a0;--line:#333;--sale:#ff6a3d;color-scheme:dark}}
+*,*::before,*::after{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Roboto,sans-serif}
+a{color:inherit}button{font:inherit;cursor:pointer}[hidden]{display:none!important}:focus-visible{outline:2px solid var(--sale);outline-offset:2px}
+#app{display:grid;grid-template-columns:200px 1fr;min-height:100vh}
+.sb{background:#000;color:#ddd;padding:16px;display:flex;flex-direction:column;gap:4px}.sb b{font:700 26px Roboto,sans-serif;color:#fff;margin-bottom:12px}
+.sb button{background:none;border:0;color:#ccc;text-align:left;padding:9px 10px;border-radius:4px}.sb button.on,.sb button:hover{background:#222;color:#fff}
+.am{padding:20px;min-width:0}.am h1{font:700 22px Roboto,sans-serif;margin:0 0 14px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}.kc{background:var(--surface);padding:14px;border-radius:4px}.kc b{display:block;font-size:22px}
+.pn{background:var(--surface);padding:14px;border-radius:4px;margin-bottom:16px;overflow-x:auto}.pn h3{margin:0 0 10px;font-size:15px}.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+input,select,textarea{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:3px;background:var(--surface);color:var(--ink);max-width:100%}td input{width:90px}td input.n{width:170px}td input.z{width:120px}
+.fm{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.bt{background:#000;color:#fff;border:0;padding:7px 13px;border-radius:3px}.bt.d{background:var(--sale)}.bt.g{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.b2{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:13px}.b2 i{display:block;height:10px;background:var(--sale);border-radius:2px}
+.oc{border:1px solid var(--line);border-radius:4px;padding:12px;margin-bottom:10px}.oc .h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.muted{color:var(--muted)}
+#login{max-width:340px;margin:12vh auto;background:var(--surface);padding:24px;border-radius:6px}#login input{width:100%;margin:8px 0}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;z-index:30;padding:12px;overflow:auto}.dlg{background:var(--surface);padding:20px;border-radius:6px;max-width:640px;width:100%}
+.eimgs{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}.eimg{width:100px}.eimg img{width:100px;height:133px;object-fit:cover;border-radius:3px;display:block}.eimg button{font-size:12px;padding:3px 6px;margin-top:3px;width:100%}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#000;color:#fff;padding:10px 18px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}#toast.on{opacity:1}
+@media (max-width:800px){#app{grid-template-columns:1fr}.sb{flex-direction:row;overflow-x:auto}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s),R=$('#app'),CUR='₮',fmt=n=>Number(n).toLocaleString('en-US')+CUR;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function api(m,p,b){const r=await fetch(p,{method:m,headers:{'Content-Type':'application/json'},body:b?JSON.stringify(b):undefined});let j={};try{j=await r.json()}catch(e){}if(!r.ok){const e=new Error(j.error||'Something went wrong.');e.status=r.status;throw e}return j}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2600)}
+let tab='dash',st={},prods=[],categories=[];
+function login(msg){R.innerHTML=`<form id="login" aria-label="Admin sign in"><h1 style="font:700 22px Roboto,sans-serif;margin:0 0 8px">\u0416\u0430\u043d\u0430\u043c \u0441\u0442\u0430\u0440\u0442\u0435\u0440 Admin</h1><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" required><div style="color:var(--sale);min-height:1.4em" role="alert">${esc(msg||'')}</div><button class="bt" style="width:100%;padding:10px">Sign in</button></form>`;
+$('#login').onsubmit=async e=>{e.preventDefault();try{await api('POST','/api/admin/login',{password:$('#pw').value});await boot()}catch(x){login(x.message)}};$('#pw').focus()}
+async function load(){[st,prods,categories]=await Promise.all([api('GET','/api/admin/stats'),api('GET','/api/admin/products'),api('GET','/api/admin/categories')])}
+async function boot(){try{const me=await api('GET','/api/admin/me');if(!me.admin)return login();await load();draw()}catch(e){login(e.message)}}
+function dash(){return `<h1>Dashboard</h1><div class="cards"><div class="kc">Products<b>${st.products}</b></div><div class="kc">Low stock<b>${st.lowStock.length}</b></div></div><div class="pn"><h3>Low-stock alerts</h3>${st.lowStock.map(x=>`<div class="b2"><span style="flex:1">${esc(x.name)}</span><b>${x.stock} left</b></div>`).join('')||'All products are well stocked.'}</div>`}
+function prodTab(){return `<h1>Products</h1><div class="pn"><h3>Add product</h3><form id="np"><div class="fm"><input class="n" name="name" placeholder="Product name" aria-label="Name" required><select name="type" aria-label="Type">${categories.map(t=>`<option value="${esc(t.slug)}">${esc(t.name)}</option>`).join('')}</select><input name="stock" type="number" min="0" placeholder="Stock" aria-label="Stock" required></div><div class="fm" style="margin-top:8px"><textarea name="description" rows="3" placeholder="Description (material, fit, care…)" aria-label="Description" maxlength="2000" style="width:100%;max-width:560px"></textarea></div><div class="fm" style="margin-top:8px"><label>Photos (up to 6): <input type="file" accept="image/*" multiple id="nimg"></label><span id="nimgs" class="muted"></span><button class="bt">Add product</button></div></form></div>
+<div class="pn"><table><tr><th>Photo</th><th>Name</th><th>Type</th><th>Stock</th><th>Status</th><th></th></tr>${prods.map(p=>`<tr data-id="${p.id}"><td>${p.img?`<img src="${esc(p.img)}" alt="" width="36" height="48" style="object-fit:cover;vertical-align:middle"> `:''}<span class="muted">${p.images.length} photo${p.images.length===1?'':'s'}</span></td><td><input class="n" data-f="name" value="${esc(p.name)}" aria-label="Name"></td><td><select data-f="type" aria-label="Type">${categories.map(t=>`<option value="${esc(t.slug)}"${t.slug===p.type?' selected':''}>${esc(t.name)}</option>`).join('')}</select></td><td><input type="number" min="0" data-f="stock" value="${p.stock}" aria-label="Stock"></td><td><select data-f="status" aria-label="Status">${['Active','Draft','Archived'].map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}</select></td><td><button class="bt" data-a="save">Save</button> <button class="bt g" data-a="details">Photos &amp; description</button> <button class="bt d" data-a="del">Delete</button></td></tr>`).join('')}</table></div>`}
+function categoryTab(){return `<h1>Categories</h1><div class="pn"><form id="nc" class="fm"><input name="name" placeholder="Category name" maxlength="40" required><button class="bt">Add category</button></form></div><div class="pn"><table><tr><th>Category</th><th>Products</th><th></th></tr>${categories.map(c=>{const n=prods.filter(p=>p.type===c.slug).length;return `<tr><td>${esc(c.name)}</td><td>${n}</td><td><button class="bt d" data-a="catdel" data-slug="${esc(c.slug)}">Remove</button></td></tr>`}).join('')}</table></div>`}
+function draw(){R.innerHTML=`<aside class="sb"><b>\u0416\u0430\u043d\u0430\u043c \u0441\u0442\u0430\u0440\u0442\u0435\u0440</b>${[['dash','Dashboard'],['prod','Products'],['cat','Categories']].map(t=>`<button data-t="${t[0]}"${tab===t[0]?' class="on"':''}>${t[1]}</button>`).join('')}<a href="/" style="padding:9px 10px;margin-top:auto">View store</a><button data-a="out">Sign out</button></aside><div class="am">${{dash,prod:prodTab,cat:categoryTab}[tab]()}</div>`}
+const shrink=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,700/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.82))};im.onerror=()=>no(new Error('That file is not a readable image.'));im.src=r.result};r.onerror=()=>no(new Error('Could not read that file.'));r.readAsDataURL(f)});
+async function shrinkAll(files,room){const out=[];for(const f of [...files].slice(0,Math.max(room,0))){if(!f.type.startsWith('image/')||f.size>1e7){toast('Skipped a file: choose images under 10 MB.');continue}try{out.push(await shrink(f))}catch(e){toast(e.message)}}return out}
+const parse=o=>({name:o.name.trim(),type:o.type,stock:parseInt(o.stock,10),status:o.status||'Active'});
+async function refresh(){await load();draw()}
+let pendImgs=[],ed=null;
+function edDraw(){let o=$('#edlg');if(!ed){if(o)o.remove();return}if(!o){o=document.createElement('div');o.id='edlg';o.className='ov';document.body.appendChild(o)}
+o.innerHTML=`<div class="dlg" role="dialog" aria-modal="true" aria-label="Photos and description"><h3 style="margin-top:0">${esc(ed.name)}</h3><p class="muted">Photos (${ed.images.length}/6). The first photo is the cover shown in the shop.</p><div class="eimgs">${ed.images.map((u,i)=>`<div class="eimg"><img src="${esc(u)}" alt="Photo ${i+1}">${i?`<button class="bt g" data-e="cover" data-i="${i}">Make cover</button>`:'<span class="muted">Cover</span>'}<button class="bt d" data-e="rm" data-i="${i}">Remove</button></div>`).join('')||'<span class="muted">No photos yet.</span>'}</div>${ed.images.length<6?'<label>Add photos: <input type="file" accept="image/*" multiple id="efiles"></label>':''}<p><label for="edesc">Description</label><br><textarea id="edesc" rows="6" style="width:100%" maxlength="2000">${esc(ed.desc)}</textarea></p><div class="fm"><button class="bt" data-e="save">Save</button><button class="bt g" data-e="cancel">Cancel</button></div></div>`}
+document.addEventListener('submit',async e=>{if(e.target.id==='nc'){e.preventDefault();try{await api('POST','/api/admin/categories',{name:new FormData(e.target).get('name')});toast('Category added');await refresh()}catch(x){toast(x.message)}return}if(e.target.id!=='np')return;e.preventDefault();const f=Object.fromEntries(new FormData(e.target));try{await api('POST','/api/admin/products',{...parse(f),description:f.description||'',images:pendImgs});pendImgs=[];toast('Product added');await refresh()}catch(x){toast(x.message)}});
+document.addEventListener('input',e=>{if(e.target.id==='edesc'&&ed)ed.desc=e.target.value});
+document.addEventListener('change',async e=>{const el=e.target;
+if(el.id==='nimg'){pendImgs=await shrinkAll(el.files,6);$('#nimgs').textContent=pendImgs.length+' photo(s) ready';return}
+if(el.id==='efiles'&&ed){const add=await shrinkAll(el.files,6-ed.images.length);ed.images.push(...add);edDraw();return}
+});
+document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
+if(b.dataset.e&&ed){const a=b.dataset.e,i=+b.dataset.i;
+if(a==='cover'){const [x]=ed.images.splice(i,1);ed.images.unshift(x);edDraw()}
+else if(a==='rm'){ed.images.splice(i,1);edDraw()}
+else if(a==='cancel'){ed=null;edDraw()}
+else if(a==='save'){try{const p=prods.find(x=>x.id===ed.id);await api('PUT','/api/admin/products/'+ed.id,{...p,images:ed.images,description:ed.desc});ed=null;edDraw();toast('Saved');await refresh()}catch(x){toast(x.message)}}
+return}
+if(b.dataset.t){tab=b.dataset.t;draw();return}
+const a=b.dataset.a;if(!a)return;const tr=b.closest('tr'),id=tr&&+tr.dataset.id,p=id&&prods.find(x=>x.id===id);
+try{if(a==='out'){await api('POST','/api/logout',{});login()}
+else if(a==='save'){const o={};tr.querySelectorAll('[data-f]').forEach(i=>{o[i.dataset.f]=i.value});await api('PUT','/api/admin/products/'+id,{...parse(o),images:p.images,description:p.description});toast('Saved');await refresh()}
+else if(a==='catdel'){if(confirm('Remove this category?')){await api('DELETE','/api/admin/categories/'+encodeURIComponent(b.dataset.slug));toast('Category removed');await refresh()}}
+else if(a==='details'){ed={id,name:p.name,images:[...p.images],desc:p.description||''};edDraw()}
+else if(a==='del'){if(confirm(`Delete "${p.name}"?`)){await api('DELETE','/api/admin/products/'+id);toast('Deleted');await refresh()}}
+}
+catch(x){toast(x.message);if(x.status===401)login()}});
+boot();
+</script>
+</body>
+</html>
