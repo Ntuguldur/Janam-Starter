@@ -48,13 +48,8 @@ if (db.prepare("SELECT 1 FROM categories WHERE slug='acc' AND name='Accessories'
   db.prepare("DELETE FROM categories WHERE slug='acc'").run();
 }
 for (const [slug,name] of Object.entries(CATEGORY_NAMES)) db.prepare('UPDATE categories SET name=? WHERE slug=?').run(name,slug);
-const SIZES = { dress: [], top: [], pants: [], shoe: [], bag: [] };
-const NAMES = { dress: ['Satin Slip Midi Dress','Floral Wrap Dress'], top: ['Ribbed Knit Top','Oversized Poplin Shirt'], pants: ['Wide-Leg Trousers','High-Rise Straight Jeans'], bag: ['Mini Shoulder Bag','Canvas Tote Bag'], shoe: ['Leather Chunky Sneakers','Suede Ankle Boots'] };
-if (!db.prepare('SELECT 1 FROM products LIMIT 1').get()) { // demo data, flagged demo=1
-  let n = 0;
-  for (const t of TYPES) for (const name of NAMES[t]) { n++; const price = 19000 + (n * 7000) % 60000;
-    db.prepare('INSERT INTO products(name,type,price,sale,stock,sizes,description,demo,created) VALUES(?,?,?,?,?,?,?,1,?)').run(name, t, price, n % 3 === 0 ? Math.round(price * .7) : null, 4 + (n * 5) % 20, JSON.stringify(SIZES[t]), name + ' from the \u0416\u0430\u043d\u0430\u043c \u0441\u0442\u0430\u0440\u0442\u0435\u0440 collection. Soft, comfortable and easy to style.', Date.now()); }
-}
+// Product rows are managed by the admin. Never recreate demo products when the
+// catalog is empty: an empty catalog may be intentional after deleting samples.
 
 const now = () => Date.now();
 class HttpError extends Error { constructor(code, msg) { super(msg); this.code = code; } }
